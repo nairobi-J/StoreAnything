@@ -38,12 +38,7 @@ export default function DashboardPage() {
   }, [router]);
 
   const handleLogout = () => {
-    // For basic auth, there's no "logout" token to invalidate.
-    // You just clear local storage if you stored anything or redirect.
-    // For JWT, you'd clear the token from localStorage/cookies.
-    // If using Spring Security's default form login with session, you'd hit a /logout endpoint.
-    // For this example, we'll just redirect.
-    // localStorage.removeItem('jwtToken'); // If you had a JWT
+   
     router.push('/login');
   };
 

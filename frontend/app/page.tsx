@@ -12,7 +12,7 @@ export default function Home() {
 
       {/* Subtitle/description */}
       <p className="text-xl text-gray-600 mb-8 max-w-2xl animate-fade-in-up">
-        This is your full-stack application, successfully deployed and running.
+        This is your full-stack application, i am working first time on it let's see if i be  successfully deployed and running.
         Explore its features by creating an account or logging in.
       </p>
 
