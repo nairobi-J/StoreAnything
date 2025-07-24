@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: StoreAnything # <--- MATCHES application.properties
+      POSTGRES_USER: postgres    # <--- MATCHES application.properties
+      POSTGRES_PASSWORD: jerin   # <--- MATCHES application.properties
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Spring Boot Backend Service
+  backend:
+    build: ./backend
+    container_name: spring_backend
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      # Pass database connection details as environment variables (overrides application.properties)
+      # These must match the 'db' service's environment or your PostgreSQL setup
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/StoreAnything # 'db' is the service name in docker-compose
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: jerin
+      JWT_SECRET: JerryBerry # <--- MATCHES application.properties
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  # Next.js Frontend Service (remains the same)
+  frontend:
+    build: ./frontend
+    container_name: nextjs_frontend
+    restart: on-failure
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

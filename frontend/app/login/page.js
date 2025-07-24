@@ -87,7 +87,7 @@ export default function LoginPage() {
         <button type="submit" style={{ padding: '10px 15px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Login</button>
       </form>
       {message && <p style={{ marginTop: '15px', color: message.includes('successful') ? 'green' : 'red' }}>{message}</p>}
-      <p style={{ marginTop: '15px' }}>Don't have an account? <Link href="/register">Register here</Link></p>
+      <p style={{ marginTop: '15px' }}>Don&apos;t have an account? <Link href="/register">Register here</Link></p>
     </div>
   );
 }
