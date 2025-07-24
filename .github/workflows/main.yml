@@ -56,7 +56,7 @@ jobs:
 
   # --- Simplified Deployment Step (Requires a VM with Docker/Docker Compose) ---
       # --- Simplified Deployment Step (Requires a VM with Docker/Docker Compose) ---
-      - name: Deploy to Remote Server (Example) # <--- UNCOMMENT THIS
+      - name: Deploy to Remote Server (Example) # <--- UNCOMMfffENT THIS
         if: success() # Only deploy if all previous steps succeeded
         uses: appleboy/ssh-action@master
         with:
