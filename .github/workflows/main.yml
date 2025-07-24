@@ -54,4 +54,19 @@ jobs:
       - name: Push Frontend Docker Image to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/nextjs-frontend:latest
 
+  # --- Simplified Deployment Step (Requires a VM with Docker/Docker Compose) ---
+      # --- Simplified Deployment Step (Requires a VM with Docker/Docker Compose) ---
+      - name: Deploy to Remote Server (Example) # <--- UNCOMMENT THIS
+        if: success() # Only deploy if all previous steps succeeded
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }} # Your remote server's IP/hostname (add as GitHub Secret)
+          username: ${{ secrets.SSH_USERNAME }} # Your SSH username (add as GitHub Secret)
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # Your SSH private key (add as GitHub Secret)
+          script: |
+            cd StoreAnything # IMPORTANT: Change this path to where you cloned your repo on the VM
+            docker-compose pull
+            docker-compose up -d --remove-orphans
+            docker image prune -f
+
     
