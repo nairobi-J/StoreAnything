@@ -1,0 +1,73 @@
+name: Full-Stack CI/CD
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java (for backend)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # Or 'zulu', 'adopt', etc.
+          java-version: '17' # Match your backend's Java version
+
+      - name: Build Spring Boot Backend Docker Image
+        run: |
+          cd backend
+          # Build the JAR first, skipping tests
+          mvn clean package -Dmaven.test.skip=true
+          # Build the Docker image
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/spring-backend:latest .
+          cd ..
+
+      - name: Set up Node.js (for frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Match your frontend's Node.js version
+          cache: 'npm' # Cache npm dependencies
+
+      - name: Build Next.js Frontend Docker Image
+        run: |
+          cd frontend
+          npm install --frozen-lockfile --production=false # Install dev dependencies for build
+          npm run build
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/nextjs-frontend:latest .
+          cd ..
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Backend Docker Image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/spring-backend:latest
+
+      - name: Push Frontend Docker Image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/nextjs-frontend:latest
+
+      # --- Simplified Deployment Step (Requires a VM with Docker/Docker Compose) ---
+      # This is a placeholder. Real-world deployment is more complex (e.g., Kubernetes, AWS ECS, etc.)
+      # This assumes you have a remote server (VM) where you can SSH and run Docker Compose.
+      # You will need to add SSH_HOST, SSH_USERNAME, SSH_PRIVATE_KEY as GitHub Secrets.
+      # If you don't have a remote server yet, you can comment out this entire step for now.
+      # - name: Deploy to Remote Server (Example)
+      #   if: success() # Only deploy if all previous steps succeeded
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }} # Your remote server's IP/hostname (add as GitHub Secret)
+      #     username: ${{ secrets.SSH_USERNAME }} # Your SSH username (add as GitHub Secret)
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }} # Your SSH private key (add as GitHub Secret)
+      #     script: |
+      #       cd /path/to/your/app/on/server # IMPORTANT: Change this path
+      #       docker-compose pull
+      #       docker-compose up -d --remove-orphans
+      #       docker image prune -f
