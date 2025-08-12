@@ -7,9 +7,9 @@ services:
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_DB: StoreAnything # <--- MATCHES application.properties
-      POSTGRES_USER: postgres    # <--- MATCHES application.properties
-      POSTGRES_PASSWORD: jerin   # <--- MATCHES application.properties
+      POSTGRES_DB: StoreAnything
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: jerin
     ports:
       - "5432:5432"
     volumes:
@@ -25,18 +25,25 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Pass database connection details as environment variables (overrides application.properties)
-      # These must match the 'db' service's environment or your PostgreSQL setup
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/StoreAnything # 'db' is the service name in docker-compose
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/StoreAnything
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: jerin
-      JWT_SECRET: JerryBerry # <--- MATCHES application.properties
+      JWT_SECRET: JerryBerry
+      # Add these critical environment variables:
+      APP_FRONTEND_URL: http://frontend:3000
+      SPRING_PROFILES_ACTIVE: docker
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Next.js Frontend Service (remains the same)
+  # Next.js Frontend Service
   frontend:
     build: ./frontend
     container_name: nextjs_frontend
@@ -44,9 +51,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_BACKEND_URL: http://localhost:8080
+      NEXT_PUBLIC_BACKEND_URL: http://backend:8080
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - app-network
 

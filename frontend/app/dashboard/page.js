@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios'; // Using axios for simplicity
+import axios from 'axios';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const [data, setData] = useState(null);
@@ -10,26 +11,15 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // This is a placeholder for a protected resource.
-    // In a real app, you'd send a JWT token in the Authorization header.
-    // For HTTP Basic, Spring Security might automatically prompt.
-    // For simplicity, let's create a dummy endpoint in Spring Boot
-    // that just returns "Dashboard data" and requires authentication.
-
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/dashboard-data', {
-          // For HTTP Basic auth, if you stored credentials (not recommended)
-          // or if the browser prompts for credentials.
-          // More commonly, for JWT, you'd add:
-          // headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` }
-        });
+        const response = await axios.get('/api/dashboard-data');
         setData(response.data);
       } catch (err) {
         setError('Failed to fetch dashboard data. Are you logged in?');
         console.error('Dashboard data fetch error:', err);
-        // If 401 Unauthorized, redirect to login
         if (err.response && err.response.status === 401) {
+          // If not authorized, redirect to login
           router.push('/login');
         }
       }
@@ -38,29 +28,41 @@ export default function DashboardPage() {
   }, [router]);
 
   const handleLogout = () => {
-   
+    // In a real app, this would also clear a JWT token.
     router.push('/login');
   };
 
   if (error) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h2>Dashboard</h2>
-        <p style={{ color: 'red' }}>{error}</p>
-        <button onClick={() => router.push('/login')} style={{ padding: '10px 15px', marginTop: '20px' }}>Go to Login</button>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Dashboard</h2>
+          <p className="text-red-500 mb-6">{error}</p>
+          <button onClick={() => router.push('/login')} className="py-2 px-4 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors duration-300">Go to Login</button>
+        </div>
       </div>
     );
   }
 
   if (!data) {
-    return <div style={{ padding: '20px', textAlign: 'center' }}>Loading dashboard...</div>;
+    return <div className="flex items-center justify-center min-h-screen bg-gray-100"><p className="text-lg text-gray-600">Loading dashboard...</p></div>;
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '50px auto', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h1>Welcome to the Dashboard!</h1>
-      <p>{data}</p>
-      <button onClick={handleLogout} style={{ padding: '10px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginTop: '20px' }}>Logout</button>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl text-center">
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-4">Dashboard</h1>
+        <p className="text-gray-600 text-xl mb-8">{data}</p>
+        <div className="flex justify-center space-x-4">
+          {/* Link to the home page */}
+          <Link href="/home" className="inline-block py-3 px-6 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors duration-300">
+            Go to Home
+          </Link>
+          <button onClick={handleLogout} className="py-3 px-6 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition-colors duration-300">
+            Logout
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-'use client'; // Important for client-side interactivity in App Router
-
+'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import axios from 'axios';
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -12,31 +12,26 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(''); // Clear previous messages
+    setMessage('');
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await axios.post(
+        'http://localhost:8080/api/auth/register',
+        { username, password },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(data.message || 'Registration successful!');
-        // Optionally redirect to login page after successful registration
-        router.push('/login');
-      } else {
-        setMessage(data.message || 'Registration failed. Please try again.');
+      if (response.status === 200 || response.status === 201) {
+        setMessage('Registration successful! Redirecting to login...');
+        setTimeout(() => router.push('/login'), 2000);
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setMessage('An error occurred. Please try again later.');
+      setMessage(error.response?.data?.message || 'Registration failed.');
     }
   };
+
+
 
   return (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '50px auto', border: '1px solid #ccc', borderRadius: '8px' }}>
