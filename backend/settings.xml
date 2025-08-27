@@ -1,0 +1,11 @@
+<settings>
+    ...
+    <servers>
+        <server>
+            <id>azure-web-app-credentials</id>
+            <username>$storeBackend</username>
+            <password>jitWLAtvvTzGSZmwcp1ftfeWnbp0x5sHf9cuKczAJtLexYu7MHiD628i61k5</password>
+        </server>
+    </servers>
+    ...
+</settings>
