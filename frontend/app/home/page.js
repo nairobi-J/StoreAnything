@@ -186,7 +186,7 @@ export default function StorePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <p className="mt-2 text-gray-500">No shared files yet</p>
-              <p className="text-sm text-gray-400 mt-1">When someone shares files with you, they'll appear here</p>
+              <p className="text-sm text-gray-400 mt-1">When someone shares files with you, theyll appear here</p>
             </div>
           </div>
         )}
