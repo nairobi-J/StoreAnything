@@ -193,7 +193,7 @@ export default function Home() {
                   Welcome to StorAnything
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Your secure cloud storage solution. Sign in to start storing and managing your files.
+                  Your secure cloud storage solution Sign in to start storing and managing your files
                 </p>
                 <SignInButton>
                   <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm">
