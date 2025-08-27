@@ -1,30 +1,44 @@
-// frontend/app/page.js
+// frontend/app/page.tsx
 'use client';
 import { useState, useEffect } from 'react';
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth, useClerk } from '@clerk/nextjs';
 import { FileDown, FileUp, Trash2, Cloud, Upload, Download, LogOut, Loader2 } from 'lucide-react';
 
+interface FileMetadata {
+  filename: string;
+  fileUrl: string;
+}
+
+interface MessageType {
+  text: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+}
+
 export default function Home() {
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [fileToUpload, setFileToUpload] = useState(null);
+  const [files, setFiles] = useState<FileMetadata[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
 
-  const API_BASE_URL = "https://storebackend-djh4bzfracekhhfk.southeastasia-01.azurewebsites.net/api";
+  const API_BASE_URL: string = "https://storebackend-djh4bzfracekhhfk.southeastasia-01.azurewebsites.net/api";
   
-  const showMessage = (text, type = 'success') => {
+  const showMessage = (text: string, type: MessageType['type'] = 'success'): void => {
     setMessage(text);
     setTimeout(() => setMessage(''), 3000);
   };
 
-  const fetchFiles = async () => {
+  const fetchFiles = async (): Promise<void> => {
     setLoading(true);
     try {
-      const token = await getToken({ template: 'simple-jwt' });
-      const response = await fetch(`${API_BASE_URL}/files`, {
+      const token: string | null = await getToken({ template: 'simple-jwt' });
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response: Response = await fetch(`${API_BASE_URL}/files`, {
         headers: {
           'Authorization': `Bearer ${token}`
         },
@@ -34,29 +48,34 @@ export default function Home() {
         throw new Error('Failed to fetch files');
       }
 
-      const data = await response.json();
+      const data: FileMetadata[] = await response.json();
       setFiles(data);
-    } catch (error) {
-      showMessage(`Error fetching files: ${error.message}`, 'error');
+    } catch (error: unknown) {
+      const errorMessage: string = error instanceof Error ? error.message : 'Unknown error occurred';
+      showMessage(`Error fetching files: ${errorMessage}`, 'error');
       console.error('Error fetching files:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (): Promise<void> => {
     if (!fileToUpload) {
       showMessage('Please select a file to upload.', 'error');
       return;
     }
 
     setUploading(true);
-    const formData = new FormData();
+    const formData: FormData = new FormData();
     formData.append('file', fileToUpload);
 
     try {
-      const token = await getToken({ template: 'simple-jwt' });
-      const response = await fetch(`${API_BASE_URL}/upload`, {
+      const token: string | null = await getToken({ template: 'simple-jwt' });
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response: Response = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -68,22 +87,27 @@ export default function Home() {
         throw new Error('Failed to upload file');
       }
 
-      const result = await response.text();
+      const result: string = await response.text();
       showMessage(result);
       setFileToUpload(null);
       fetchFiles(); // Refresh the file list
-    } catch (error) {
-      showMessage(`Error uploading file: ${error.message}`, 'error');
+    } catch (error: unknown) {
+      const errorMessage: string = error instanceof Error ? error.message : 'Unknown error occurred';
+      showMessage(`Error uploading file: ${errorMessage}`, 'error');
       console.error('Error uploading file:', error);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDelete = async (filename) => {
+  const handleDelete = async (filename: string): Promise<void> => {
     try {
-      const token = await getToken({ template: 'simple-jwt' });
-      const response = await fetch(`${API_BASE_URL}/delete/${filename}`, {
+      const token: string | null = await getToken({ template: 'simple-jwt' });
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response: Response = await fetch(`${API_BASE_URL}/delete/${encodeURIComponent(filename)}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -94,19 +118,24 @@ export default function Home() {
         throw new Error('Failed to delete file');
       }
 
-      const result = await response.text();
+      const result: string = await response.text();
       showMessage(result);
       fetchFiles(); // Refresh the file list
-    } catch (error) {
-      showMessage(`Error deleting file: ${error.message}`, 'error');
+    } catch (error: unknown) {
+      const errorMessage: string = error instanceof Error ? error.message : 'Unknown error occurred';
+      showMessage(`Error deleting file: ${errorMessage}`, 'error');
       console.error('Error deleting file:', error);
     }
   };
 
-  const handleDownload = async (filename) => {
+  const handleDownload = async (filename: string): Promise<void> => {
     try {
-      const token = await getToken({ template: 'simple-jwt' });
-      const response = await fetch(`${API_BASE_URL}/download/${filename}`, {
+      const token: string | null = await getToken({ template: 'simple-jwt' });
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response: Response = await fetch(`${API_BASE_URL}/download/${encodeURIComponent(filename)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         },
@@ -117,13 +146,13 @@ export default function Home() {
       }
 
       // Create a blob from the response
-      const blob = await response.blob();
+      const blob: Blob = await response.blob();
       
       // Create a temporary URL for the blob
-      const url = window.URL.createObjectURL(blob);
+      const url: string = window.URL.createObjectURL(blob);
       
       // Create a temporary anchor element to trigger download
-      const a = document.createElement('a');
+      const a: HTMLAnchorElement = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
       a.download = filename; // Set the filename for download
@@ -137,8 +166,9 @@ export default function Home() {
       document.body.removeChild(a);
       
       showMessage('Download started successfully');
-    } catch (error) {
-      showMessage(`Error downloading file: ${error.message}`, 'error');
+    } catch (error: unknown) {
+      const errorMessage: string = error instanceof Error ? error.message : 'Unknown error occurred';
+      showMessage(`Error downloading file: ${errorMessage}`, 'error');
       console.error('Error downloading file:', error);
     }
   };
@@ -193,7 +223,7 @@ export default function Home() {
                   Welcome to StorAnything
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Your secure cloud storage solution Sign in to start storing and managing your files
+                  Your secure cloud storage solution. Sign in to start storing and managing your files.
                 </p>
                 <SignInButton>
                   <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm">
@@ -219,7 +249,10 @@ export default function Home() {
                   </label>
                   <input 
                     type="file" 
-                    onChange={(e) => setFileToUpload(e.target.files[0])}
+                    placeholder='no'
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                      setFileToUpload(e.target.files?.[0] || null)
+                    }
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer transition-colors"
                   />
                 </div>
@@ -242,6 +275,9 @@ export default function Home() {
                   <p className="text-sm text-blue-700">
                     <strong>Selected file:</strong> {fileToUpload.name}
                   </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Size: {(fileToUpload.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
                 </div>
               )}
             </div>
@@ -252,7 +288,7 @@ export default function Home() {
                 <Download className="w-5 h-5 text-blue-600 mr-2" />
                 <h2 className="text-xl font-semibold text-gray-800">Your Files</h2>
                 <span className="ml-3 px-2 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                  {files.length} files
+                  {files.length} {files.length === 1 ? 'file' : 'files'}
                 </span>
               </div>
 
@@ -263,7 +299,7 @@ export default function Home() {
                 </div>
               ) : files.length > 0 ? (
                 <div className="space-y-3">
-                  {files.map((file, index) => (
+                  {files.map((file: FileMetadata, index: number) => (
                     <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
                       <div className="flex items-center space-x-3 min-w-0 flex-1">
                         <div className="p-2 bg-blue-100 rounded-lg">
